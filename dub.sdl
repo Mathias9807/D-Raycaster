@@ -1,0 +1,5 @@
+name "000"
+description "A minimal D application."
+copyright "Copyright © 2015, mathiasjohansson"
+authors "mathiasjohansson"
+dependency "derelict-sdl2" version="1.9.7"
