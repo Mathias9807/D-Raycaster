@@ -20,7 +20,7 @@ double fov, vFov, texSize;
 
 bool ceiling = false;
 
-Sprite spr;
+Sprite spr, backdrop;
 
 class Sprite {
 	ubyte[][] pixels;
@@ -73,13 +73,15 @@ void init() {
 	for (int y = 0; y < HEIGHT; y++) 
 		yAngles[y] = (y - HEIGHT / 2.0) / HEIGHT * vFov;
 	
+	backdrop = new Sprite("Backdrop.png");
 	spr = new Sprite("Cobble.png");
 }
 
 void tick() {
-	for (int i = 0; i < WIDTH * HEIGHT; i++) 
-		for (int j = 0; j < 3; j++) 
-			pixels[i][j] = 0;
+	for (int x = 0; x < WIDTH; x++) 
+		for (int y = 0; y < HEIGHT; y++) 
+			for (int j = 0; j < 3; j++) 
+				pixels[x + y * WIDTH][j] = backdrop[x * backdrop.w / WIDTH, y * backdrop.h / HEIGHT][j];
 
 	for (int y = ceiling ? 0 : HEIGHT / 2; y < HEIGHT; y++) {
 		double zLocal = 1.0 / (abs(tan(yAngles[y] + game.rot[0])) / game.pos[1]);
@@ -93,18 +95,18 @@ void tick() {
 			double zWorld = zz - game.pos[2];
 			double xWorld = xx + game.pos[0];
 			
-			int u = cast(int) abs(cast(int) (xWorld / texSize) % spr.w);
-			int v = cast(int) abs(zWorld / texSize % spr.h);
+			uint u = cast(int) abs(cast(int) (xWorld / texSize) % spr.w);
+			uint v = cast(int) abs(zWorld / texSize % spr.h);
 			
 			setPixel(x, y, spr[u, v][0], spr[u, v][1], spr[u, v][2]);
 		}
 	}
 
-	auto e = game.post;
+	auto e = game.ents[0];
 	auto s = e.spr;
 
-	double dx = game.post.x - game.pos[0];
-	double dy = game.post.z - game.pos[2];
+	double dx = e.x - game.pos[0];
+	double dy = e.z - game.pos[2];
 	if (dx > 0.5 || dx < -0.5 || dy > 0.5 || dy < -0.5) {
 		double d = sqrt(dx * dx + dy * dy);
 		double xa = atan2(dy, dx) - game.rot[1] + PI / 2.0;
@@ -143,6 +145,13 @@ void setPixel(int x, int y, int r, int g, int b) {
 	pixels[x + y * WIDTH][0] = cast(ubyte) r;
 	pixels[x + y * WIDTH][1] = cast(ubyte) g;
 	pixels[x + y * WIDTH][2] = cast(ubyte) b;
+}
+
+void setPixel(int x, int y, int r, int g, int b, double a) {
+	double aa = 	1 - a;
+	pixels[x + y * WIDTH][0] = cast(ubyte) (r * a + pixels[x + y * WIDTH][0] * aa);
+	pixels[x + y * WIDTH][1] = cast(ubyte) (g * a + pixels[x + y * WIDTH][1] * aa);
+	pixels[x + y * WIDTH][2] = cast(ubyte) (b * a + pixels[x + y * WIDTH][2] * aa);
 }
 
 void quit() {

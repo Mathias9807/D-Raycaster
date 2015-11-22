@@ -3,14 +3,14 @@ import entity;
 import render;
 import std.math;
 
-double[3] pos = [512, 1, 512];
+double[3] pos = [0, 1, 0];
 double[2] rot = [0, 0];
 double speed = 5, rotSpeed = 1.2;
 
-Entity post;
+Entity[] ents;
 
 void init() {
-	post = new Entity(512, 1, 512, 0.3, new Sprite("Thrash.png"));
+	ents ~= new Entity(0, 0, 0, 0.4, new Sprite("Thrash.png"));
 }
 
 void tick(double delta) {	
