@@ -8,6 +8,13 @@ import game;
 
 const string BASE_PATH = "./res/";
 
+double[] timing;
+int count;
+
+double getTime() {
+	return cast(double) SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
+}
+
 void main() {
 	DerelictSDL2.load();
 	DerelictSDL2Image.load();
@@ -30,12 +37,7 @@ void main() {
 		delta = (current - last) / 1000.0;
 		
 		game.tick(delta);
-		try {
-			render.tick();
-		}catch (Exception e) {
-			writeln(e.msg);
-			break;
-		}
+		render.tick();
 		
 		for (int x = 0; x < WIDTH * SCALE; x++) 
 			for (int y = 0; y < HEIGHT * SCALE; y++) {
@@ -51,6 +53,10 @@ void main() {
 		if (current - lastSecond > 1000) {
 			lastSecond = current;
 			writeln("FPS: ", frames);
+			write("Timing: ");
+			foreach (t; timing) write(t * 1000, " ");
+			writeln("- ", count);
+			
 			frames = 0;
 		}
 	}
@@ -59,5 +65,17 @@ void main() {
 	render.quit();
 	
 	SDL_Quit();
+}
+
+void addTime(double[] newTimes) {
+	if (timing.length == 0) 
+		for (int i = 0; i < newTimes.length; i++) 
+			timing ~= newTimes[i] - newTimes[0];
+
+	double start = newTimes[0];
+	for (int i = 0; i < newTimes.length; i++) {
+		timing[i] = (count * timing[i] + newTimes[i] - start) / ++count;
+		start = newTimes[i];
+	}
 }
 

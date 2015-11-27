@@ -10,6 +10,8 @@ enum uint SCALE = 3;
 enum uint WIDTH = 160;
 enum uint HEIGHT = 120;
 
+immutable uint TILE_SIZE = 8;
+
 immutable uint ALPHA_COLOR = 0xFF00FF;
 
 ubyte[3][WIDTH * HEIGHT] pixels;
@@ -19,6 +21,11 @@ private float[HEIGHT] yAngles;
 double fov, vFov, texSize;
 
 bool ceiling = false;
+
+private {
+	double[2] rot = [1000, 1000];
+	double[WIDTH] xCos, xTan;
+}
 
 Sprite spr, backdrop;
 
@@ -75,70 +82,75 @@ void init() {
 	
 	backdrop = new Sprite("Backdrop.png");
 	spr = new Sprite("Cobble.png");
+	if (spr.w != TILE_SIZE || spr.h != TILE_SIZE) throw new Exception("Incorrect sprite size! ");
 }
 
 void tick() {
-	for (int x = 0; x < WIDTH; x++) 
-		for (int y = 0; y < HEIGHT; y++) 
-			for (int j = 0; j < 3; j++) 
-				pixels[x + y * WIDTH][j] = backdrop[x * backdrop.w / WIDTH, y * backdrop.h / HEIGHT][j];
+	double[] times;
+	times ~= main.getTime();
 
-	for (int y = ceiling ? 0 : HEIGHT / 2; y < HEIGHT; y++) {
-		double zLocal = 1.0 / (abs(tan(yAngles[y] + game.rot[0])) / game.pos[1]);
-		if (zLocal > 50) continue;
-		
+	if (rot[0] != game.rot[0] || rot[1] != game.rot[1]) {
+		rot[0] = game.rot[0];
+		rot[1] = game.rot[1];
 		for (int x = 0; x < WIDTH; x++) {
-			double xCos = cos(xAngles[x] + game.rot[1]);
-			double zz = zLocal * xCos;
-			double xx = tan(xAngles[x] + game.rot[1]) * zz;
-			
-			double zWorld = zz - game.pos[2];
-			double xWorld = xx + game.pos[0];
-			
-			uint u = cast(int) abs(cast(int) (xWorld / texSize) % spr.w);
-			uint v = cast(int) abs(zWorld / texSize % spr.h);
-			
-			setPixel(x, y, spr[u, v][0], spr[u, v][1], spr[u, v][2]);
+			xCos[x] = cos(xAngles[x] + game.rot[1]);
+			xTan[x] = tan(xAngles[x] + game.rot[1]);
 		}
 	}
 
-	auto e = game.ents[0];
-	auto s = e.spr;
-
-	double dx = e.x - game.pos[0];
-	double dy = e.z - game.pos[2];
-	if (dx > 0.5 || dx < -0.5 || dy > 0.5 || dy < -0.5) {
-		double d = sqrt(dx * dx + dy * dy);
-		double xa = atan2(dy, dx) - game.rot[1] + PI / 2.0;
-		while (xa > PI) xa -= 2 * PI;
-		while (xa < -PI) xa += 2 * PI;
-		double ya = -atan2(e.y - game.pos[1], d);
-		/*for (int x = 0; x < s.w; x++) 
-			for (int y = 0; y < s.h; y++) {
-				int xx = cast(int) (xa / fov * WIDTH) + cast(int) ((x - s.w / 2) / d);
-				int yy = cast(int) (ya / vFov * HEIGHT) + cast(int) ((y - s.h) / d);
-				if (abs(xx) + 1 > WIDTH / 2) return;
-				if (abs(yy) + 1 > HEIGHT / 2) return;
-				setPixel(WIDTH / 2 + xx, HEIGHT / 2 + yy, s[x, y][0], s[x, y][1], s[x, y][2]);
-			}*/
-		double xm = cast(int) (xa / fov * WIDTH);
-		double yb = cast(int) (ya / vFov * HEIGHT);
-		double yt = cast(int) (-atan2(e.y + e.height - game.pos[1], d) / vFov * HEIGHT);
-		double xd = (yb - yt) / s.h * s.w / 2;
-		for (double x = xm - xd; x < xm + xd; x++) 
-			for (double y = yt; y < yb; y++) {
-				int xs = cast(int) ((x - xm + xd) / 2 / xd * s.w);
-				int ys = cast(int) ((y - yt) / (yb - yt) * s.h);
-				if (s[xs, ys][0] == cast(ubyte) (ALPHA_COLOR >> 16) 
-					&& s[xs, ys][1] == cast(ubyte) (ALPHA_COLOR >> 8) 
-					&& s[xs, ys][2] == cast(ubyte) ALPHA_COLOR) continue; 
-				int xx = cast(int) (x);
-				int yy = cast(int) (y);
-				if (abs(xx) + 1 > WIDTH / 2) continue;
-				if (abs(yy) + 1 > HEIGHT / 2) continue;
-				setPixel(WIDTH / 2 + xx, HEIGHT / 2 + yy, s[xs, ys][0], s[xs, ys][1], s[xs, ys][2]);
-			}
+	for (int y = 0; y < HEIGHT; y++) {
+		double zLocal = 1.0 / (abs(tan(yAngles[y] + game.rot[0])) / game.pos[1]);
+		if (zLocal > 50 || (!ceiling && y < HEIGHT / 2)) {
+			for (int x = 0; x < WIDTH; x++) 
+				pixels[x + y * WIDTH][0..3] = backdrop[x * backdrop.w / WIDTH, y * backdrop.h / HEIGHT][0..3];
+			continue;
+		}
+		
+		for (int x = 0; x < WIDTH; x++) {
+			double zz = zLocal * xCos[x];
+			double xx = xTan[x] * zz;
+			
+			int zWorld = cast(int) ((zz - game.pos[2]) / texSize);
+			int xWorld = cast(int) ((xx + game.pos[0]) / texSize);
+			
+			pixels[x + y * WIDTH][0..3] = spr[xWorld & 0b111, zWorld & 0b111][0..3];
+		}
 	}
+
+	times ~= main.getTime();
+
+	foreach (e; game.ents) {
+		auto s = e.spr;
+
+		double dx = e.x - game.pos[0];
+		double dy = e.z - game.pos[2];
+		if (dx > 0.5 || dx < -0.5 || dy > 0.5 || dy < -0.5) {
+			double d = sqrt(dx * dx + dy * dy);
+			double xa = atan2(dy, dx) - game.rot[1] + PI / 2.0;
+			double ya = -atan2(e.y - game.pos[1], d);
+			double xm = cast(int) (xa / fov * WIDTH);
+			double yb = cast(int) (ya / vFov * HEIGHT);
+			double yt = cast(int) (-atan2(e.y + e.height - game.pos[1], d) / vFov * HEIGHT);
+			double xd = (yb - yt) / s.h * s.w / 2;
+			for (double x = xm - xd; x < xm + xd; x++) 
+				for (double y = yt; y < yb; y++) {
+					int xs = cast(int) ((x - xm + xd) / 2 / xd * s.w);
+					int ys = cast(int) ((y - yt) / (yb - yt) * s.h);
+					if (s[xs, ys][0] == cast(ubyte) (ALPHA_COLOR >> 16) 
+						&& s[xs, ys][1] == cast(ubyte) (ALPHA_COLOR >> 8) 
+						&& s[xs, ys][2] == cast(ubyte) ALPHA_COLOR) continue; 
+					int xx = cast(int) (x);
+					int yy = cast(int) (y);
+					if (abs(xx) + 1 > WIDTH / 2) continue;
+					if (abs(yy) + 1 > HEIGHT / 2) continue;
+					setPixel(WIDTH / 2 + xx, HEIGHT / 2 + yy, s[xs, ys][0], s[xs, ys][1], s[xs, ys][2]);
+				}
+		}
+	}
+	
+	times ~= main.getTime();
+
+	addTime(times);
 }
 
 void setPixel(int x, int y, int r, int g, int b) {

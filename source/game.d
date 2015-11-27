@@ -11,11 +11,14 @@ Entity[] ents;
 
 void init() {
 	ents ~= new Entity(0, 0, 0, 0.4, new Sprite("Thrash.png"));
+	ents ~= new Entity(5, 0, 5, 0.4, new Sprite("Thrash.png"));
 }
 
 void tick(double delta) {	
 	if (input.isPressed(LEFT)) rot[1] -= delta * rotSpeed;
 	if (input.isPressed(RIGHT)) rot[1] += delta * rotSpeed;
+	if (rot[1] >= 2 * PI) rot[1] -= 2 * PI;
+	if (rot[1] < -2 * PI) rot[1] += 2 * PI;
 
 	double[] d = [0, 0, 0];
 	if (input.isPressed(W)) d[2] -= delta * speed;
