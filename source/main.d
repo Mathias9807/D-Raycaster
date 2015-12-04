@@ -5,6 +5,7 @@ import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 import render;
 import game;
+import menu;
 
 const string BASE_PATH = "./res/";
 
@@ -26,6 +27,7 @@ void main() {
 	
 	game.init();
 	render.init();
+	menu.init();
 	
 	uint current = SDL_GetTicks();
 	uint last = current;

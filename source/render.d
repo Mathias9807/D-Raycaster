@@ -6,6 +6,7 @@ import derelict.sdl2.image;
 import game;
 import entity;
 import main;
+import menu;
 
 enum uint SCALE = 3;
 enum uint WIDTH = 160;
@@ -169,8 +170,49 @@ void tick() {
 	}
 	
 	times ~= main.getTime();
+	
+	menu.current.render();
+	
+	times ~= main.getTime();
 
 	addTime(times);
+}
+
+void draw(Sprite s, int x, int y) {
+	x = x < 0 ? 0 : x;
+	x = x > s.w - 1 ? s.w - 1 : x;
+	y = y < 0 ? 0 : y;
+	y = y > s.h - 1 ? s.h - 1 : y;
+
+	for (int xx = 0; xx < s.w; xx++) {
+		int xxx = xx + x;
+		for (int yy = 0; yy < s.h; yy++) 
+			pixels[x + y * WIDTH][0..3] = s.pixels[xxx + (yy + y) * s.w][0..3];
+	}
+}
+
+void draw(Sprite s, int x, int y, int w, int h) {
+	int x0 = x < 0 ? -x : 0;
+	int y0 = y < 0 ? -y : 0;
+	int xMax = x + w > WIDTH ? WIDTH - x : w;
+	int yMax = y + h > HEIGHT ? HEIGHT - y : h;
+	
+	for (int xx = x0; xx < xMax; xx++) {
+		int xScr = x + xx;
+		int xSpr = xx * s.w / w;
+		for (int yy = y0; yy < yMax; yy++) {
+			int yScr = y + yy;
+			int ySpr = yy * s.h / h;
+			
+			ubyte[] col = s.pixels[xSpr + ySpr * s.w][0..3];
+			
+			if (col[0] == cast(ubyte) (ALPHA_COLOR >> 16) 
+				&& col[1] == cast(ubyte) (ALPHA_COLOR >> 8) 
+				&& col[2] == cast(ubyte) ALPHA_COLOR) continue;
+			
+			pixels[xScr + yScr * WIDTH][0..3] = col;
+		}
+	}
 }
 
 void setPixel(int x, int y, int r, int g, int b) {
