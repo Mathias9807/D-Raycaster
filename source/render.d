@@ -1,5 +1,6 @@
 import std.stdio;
 import std.math;
+import std.string;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 import game;
@@ -52,11 +53,30 @@ class Sprite {
 		w = s.w;
 		h = s.h;
 		pixels = new ubyte[][](w * h, 3);
-
-		for (int x = 0; x < w; x++) 
-			for (int y = 0; y < h; y++) 
-				for (int j = 0; j < 3; j++) 
-					pixels[x + y * w][j] = cast(ubyte) ((cast(uint*)s.pixels)[x + y * s.pitch / uint.sizeof] >> (16 - 8 * j));
+		SDL_PixelFormat* pf = s.format;
+		
+		if (pf.palette == null) {
+			ubyte* sPixels = cast(ubyte*) s.pixels;
+			
+			for (int x = 0; x < w; x++) 
+				for (int y = 0; y < h; y++) {
+					uint pix = 0;
+					for (int i = pf.BytesPerPixel - 1; i >= 0; i--) 
+						pix = (pix << 8) | sPixels[x * pf.BytesPerPixel + y * s.pitch + i];
+					pixels[x + y * w][0] = cast(ubyte) ((pix & pf.Rmask) >> pf.Rshift << pf.Rloss);
+					pixels[x + y * w][1] = cast(ubyte) ((pix & pf.Gmask) >> pf.Gshift << pf.Gloss);
+					pixels[x + y * w][2] = cast(ubyte) ((pix & pf.Bmask) >> pf.Bshift << pf.Bloss);
+				}
+		}else {
+			SDL_Color* pal = pf.palette.colors;
+			for (int x = 0; x < w; x++) 
+				for (int y = 0; y < h; y++) {
+					int index = (cast(ubyte*) s.pixels)[x + y * s.pitch];
+					pixels[x + y * w][0] = pal[index].r;
+					pixels[x + y * w][1] = pal[index].b;
+					pixels[x + y * w][2] = pal[index].g;
+				}
+		}
 	}
 	
     ref ubyte[] opIndex(int x, int y) {
