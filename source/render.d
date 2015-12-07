@@ -109,18 +109,21 @@ void init() {
 void tick() {
 	double[] times;
 	times ~= main.getTime();
-
-	if (rot[0] != game.rot[0] || rot[1] != game.rot[1]) {
-		rot[0] = game.rot[0];
-		rot[1] = game.rot[1];
+	
+	double[3] cPos = [game.p.e.x, game.p.e.y + game.p.e.eyeHeight, game.p.e.z];
+	double[2] cRot = [game.p.e.xRot, game.p.e.yRot];
+	
+	if (rot[0] != cRot[0] || rot[1] != cRot[1]) {
+		rot[0] = cRot[0];
+		rot[1] = cRot[1];
 		for (int x = 0; x < WIDTH; x++) {
-			xCos[x] = cos(xAngles[x] + game.rot[1]);
-			xTan[x] = tan(xAngles[x] + game.rot[1]);
+			xCos[x] = cos(xAngles[x] + cRot[1]);
+			xTan[x] = tan(xAngles[x] + cRot[1]);
 		}
 	}
 
 	for (int y = 0; y < HEIGHT; y++) {
-		double zLocal = 1.0 / (abs(tan(yAngles[y] + game.rot[0])) / game.pos[1]);
+		double zLocal = 1.0 / (abs(tan(yAngles[y] + cRot[0])) / cPos[1]);
 		if (zLocal > 50 || (!ceiling && y < HEIGHT / 2)) {
 			for (int x = 0; x < WIDTH; x++) 
 				pixels[x + y * WIDTH][0..3] = backdrop[x * backdrop.w / WIDTH, y * backdrop.h / HEIGHT][0..3];
@@ -131,8 +134,8 @@ void tick() {
 			double zz = zLocal * xCos[x];
 			double xx = xTan[x] * zz;
 			
-			int zWorld = cast(int) ((zz - game.pos[2]) / texSize);
-			int xWorld = cast(int) ((xx + game.pos[0]) / texSize);
+			int zWorld = cast(int) ((zz - cPos[2]) / texSize);
+			int xWorld = cast(int) ((xx + cPos[0]) / texSize);
 			
 			pixels[x + y * WIDTH][0..3] = spr[xWorld & 0b111, zWorld & 0b111][0..3];
 		}
@@ -143,15 +146,15 @@ void tick() {
 	foreach (e; game.ents) {
 		auto s = e.spr;
 
-		double dx = e.x - game.pos[0];
-		double dy = e.z - game.pos[2];
+		double dx = e.x - cPos[0];
+		double dy = e.z - cPos[2];
 		if (dx > 0.5 || dx < -0.5 || dy > 0.5 || dy < -0.5) {
 			double d = sqrt(dx * dx + dy * dy);
-			double xa = atan2(dy, dx) - game.rot[1] + PI / 2.0;
-			double ya = -atan2(e.y - game.pos[1], d);
+			double xa = atan2(dy, dx) - cRot[1] + PI / 2.0;
+			double ya = -atan2(e.y - cPos[1], d);
 			double xm = cast(int) (xa / fov * WIDTH);
 			double yb = cast(int) (ya / vFov * HEIGHT);
-			double yt = cast(int) (-atan2(e.y + e.height - game.pos[1], d) / vFov * HEIGHT);
+			double yt = cast(int) (-atan2(e.y + e.height - cPos[1], d) / vFov * HEIGHT);
 			double xd = (yb - yt) / s.h * s.w / 2;
 			for (double x = xm - xd; x < xm + xd; x++) 
 				for (double y = yt; y < yb; y++) {

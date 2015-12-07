@@ -1,23 +1,50 @@
 import derelict.sdl2.sdl;
 
+struct Key {
+	bool state;
+	int kEnum;
+}
+
 enum {
-	W, A, S, D, UP, DOWN, LEFT, RIGHT
-};
+	W, A, S, D, UP, DOWN, LEFT, RIGHT, LAST
+}
+
+private Key[] keys = [
+	{0, SDL_SCANCODE_W}, 
+	{0, SDL_SCANCODE_A}, 
+	{0, SDL_SCANCODE_S}, 
+	{0, SDL_SCANCODE_D}, 
+	{0, SDL_SCANCODE_UP}, 
+	{0, SDL_SCANCODE_DOWN}, 
+	{0, SDL_SCANCODE_LEFT}, 
+	{0, SDL_SCANCODE_RIGHT}, 
+];
+
+Key[] oldKeys;
+
+void init() {
+	oldKeys ~= keys[0..LAST];
+}
 
 bool isPressed(uint k) {
-	bool* s = cast(bool*) SDL_GetKeyboardState(null);
+	bool* curKeys = getKeys();
 	
-	switch (k) {
-		case W:	return s[SDL_SCANCODE_W];
-		case A:	return s[SDL_SCANCODE_A];
-		case S:	return s[SDL_SCANCODE_S];
-		case D:	return s[SDL_SCANCODE_D];
-		case UP:	return s[SDL_SCANCODE_UP];
-		case DOWN:	return s[SDL_SCANCODE_DOWN];
-		case LEFT:	return s[SDL_SCANCODE_LEFT];
-		case RIGHT:	return s[SDL_SCANCODE_RIGHT];
-		default: break;
-	}
-	
+	keys[k].state = curKeys[keys[k].kEnum];
+	oldKeys[0..LAST] = keys[0..LAST];
+
+	return keys[k].state;
+}
+
+bool hasChanged() {
+	bool* newKeys = getKeys();
+	for (int i = 0; i < LAST; i++) 
+		if (newKeys[keys[i].kEnum] != keys[i].state) 
+			return true;
+
 	return false;
 }
+
+bool* getKeys() {
+	return cast(bool*) SDL_GetKeyboardState(null);
+}
+

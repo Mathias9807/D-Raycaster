@@ -1,4 +1,6 @@
 import render;
+import input;
+import game;
 
 interface Component {
 	void event();
@@ -26,7 +28,7 @@ class Menu {
 
 Menu current;
 
-Menu mainMenu;
+Menu mainMenu, hudMenu;
 
 Sprite title;
 
@@ -34,8 +36,9 @@ void init() {
 	title = new Sprite("Title.png");
 
 	mainMenu = new Menu([new Image(title, WIDTH / 2, HEIGHT / 3)]);
+	hudMenu = new Menu([new Controller()]);
 	
-	current = mainMenu;
+	current = hudMenu;
 }
 
 class Image : Component {
@@ -65,5 +68,31 @@ class Image : Component {
 	}
 	
 	bool isInteractive() { return false; }
+}
+
+// Enables player movement
+class Controller : Component {
+	void event() {
+		double[] dR = [0, 0];
+		if (input.isPressed(LEFT)) dR[1] -= game.delta;
+		if (input.isPressed(RIGHT)) dR[1] += game.delta;
+	
+		double[] d = [0, 0, 0];
+		if (input.isPressed(W)) d[2] -= game.delta;
+		if (input.isPressed(S)) d[2] += game.delta;
+		if (input.isPressed(A)) d[0] -= game.delta;
+		if (input.isPressed(D)) d[0] += game.delta;
+		if (d[0] != 0 && d[2] != 0) {
+			d[0] /= 1.41;
+			d[2] /= 1.41;
+		}
+		
+		p.e.rotate(dR);
+		p.e.move(d);
+	}
+	
+	void render() {}
+	
+	bool isInteractive() { return true; }
 }
 

@@ -5,6 +5,7 @@ import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 import render;
 import game;
+import input;
 import menu;
 
 const string BASE_PATH = "./res/";
@@ -25,6 +26,7 @@ void main() {
 	SDL_Window* win = SDL_CreateWindow("000", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH * SCALE, HEIGHT * SCALE, SDL_WINDOW_SHOWN);
 	SDL_Surface* winSurf = SDL_GetWindowSurface(win);
 	
+	input.init();
 	game.init();
 	render.init();
 	menu.init();
