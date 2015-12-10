@@ -34,11 +34,13 @@ Sprite spr, backdrop;
 class Sprite {
 	ubyte[][] pixels;
 	immutable uint w, h;
+	immutable double aspect;
 	
 	this(uint w, uint h) {
 		pixels = new ubyte[][](w * h, 3);
 		this.w = w;
 		this.h = h;
+		this.aspect = cast(double) w / h;
 		for (int i = 0; i < w * h; i++) 
 			for (int j = 0; j < 3; j++)
 				pixels[i][j] = cast(ubyte) (i * 0xFF / w / h);
@@ -53,6 +55,7 @@ class Sprite {
 		
 		w = s.w;
 		h = s.h;
+		this.aspect = cast(double) w / h;
 		pixels = new ubyte[][](w * h, 3);
 		SDL_PixelFormat* pf = s.format;
 		
