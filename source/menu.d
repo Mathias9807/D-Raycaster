@@ -100,7 +100,7 @@ class Controller : Component {
 class WeaponRenderer : Component {
 	private float xOffs = 0;
 	private immutable int limit = 40, speed = 128;
-	private immutable float rubberband = 1.0 / 150;
+	private immutable float rubberband = 1.0 / 350;
 
 	void event() {}
 	

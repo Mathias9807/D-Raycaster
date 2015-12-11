@@ -7,28 +7,37 @@ struct Weapon {
 }
 
 class Entity {
-	public double x, y, z, dx, dy, dz;
+	public double x, y, z;
 	public double xRot, yRot, dxRot, dyRot;
-	public double height, eyeHeight, speed, rotSpeed;
+	public double height, speed, rotSpeed;
 
 	public Sprite spr;
-	
-	public Weapon weapon;
 
 	this(double x, double y, double z, double h, Sprite s) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		dx = dy = dz = 0;
 		xRot = 0;
 		yRot = 0;
-		dxRot = dyRot = 0;
 		height = h;
-		eyeHeight = h * 2 / 3;
 		speed = 5;
 		rotSpeed = 1.2;
 		this.spr = s;
+	}
+}
+
+class Mob : Entity {
+	public double dx, dy, dz, dxRot, dyRot;
+	public double eyeHeight;
+	public Weapon weapon;
+	
+	this(double x, double y, double z, double h, Sprite s) {
+		super(x, y, z, h, s);
+		
 		weapon = game.weps[0];
+		eyeHeight = h * 2 / 3;
+		dx = dy = dz = 0;
+		dxRot = dyRot = 0;
 	}
 	
 	public void move(double[] delta) {

@@ -8,7 +8,7 @@ import std.conv;
 double delta;
 
 struct Player {
-	Entity e; // The entity this player is controlling
+	Mob e; // The entity this player is controlling
 }
 
 Weapon[] weps;
@@ -22,7 +22,7 @@ void init() {
 		s ~= new Sprite("Blaster/000" ~ to!string(i) ~ ".png");
 	weps ~= Weapon("Blaster", s);
 
-	p.e = new Entity(0, 0, 0, 1.8, new Sprite("Thrash.png"));
+	p.e = new Mob(0, 0, 0, 1.8, new Sprite("Thrash.png"));
 	ents ~= p.e;
 	ents ~= new Entity(0, 0, 0, 0.4, new Sprite("Thrash.png"));
 	ents ~= new Entity(5, 0, 5, 0.4, new Sprite("Thrash.png"));
