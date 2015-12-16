@@ -73,7 +73,16 @@ class Image : Component {
 
 // Enables player movement
 class Controller : Component {
+	private bool attackHeld = false;
+
 	void event() {
+		bool attack = input.isPressed(ATTACK);
+		double dTime = main.getTime() - p.e.lastFired;
+		if (attack 
+			&& (p.e.weapon.automatic ? dTime > p.e.weapon.firerate : !attackHeld)) 
+			game.p.e.fire();
+		attackHeld = attack;
+		
 		double[] dR = [0, 0];
 		if (input.isPressed(LEFT)) dR[1] -= game.delta;
 		if (input.isPressed(RIGHT)) dR[1] += game.delta;
@@ -99,8 +108,8 @@ class Controller : Component {
 
 class WeaponRenderer : Component {
 	private float xOffs = 0;
-	private immutable int limit = 40, speed = 128;
-	private immutable float rubberband = 1.0 / 350;
+	private immutable int limit = 40, speed = 256;
+	private immutable float rubberband = 1.0 / 2048;
 
 	void event() {}
 	
@@ -111,9 +120,13 @@ class WeaponRenderer : Component {
 		xOffs *= pow(rubberband, game.delta);
 		
 		Sprite[] s = game.p.e.weapon.spr;
+		double x = (game.p.e.lastFired - main.getTime()) / game.p.e.weapon.firerate;
+		double f = polynomial([1, -1], x);
+		int index = cast(int) (f * s.length);
+		if (index >= s.length) index = cast(int) (s.length - 1);
 		if (s.length > 0) {
 			double scale = cast(double) HEIGHT / s[0].h;
-			draw(s[0], cast(uint) (WIDTH / 2 - s[0].w / 2 * scale + xOffs), 0, 
+			draw(s[index], cast(uint) (WIDTH / 2 - s[0].w / 2 * scale + xOffs), 0, 
 				cast(uint) (s[0].w * scale), HEIGHT);
 		}
 	}

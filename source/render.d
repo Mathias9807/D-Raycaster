@@ -146,7 +146,8 @@ void tick() {
 
 	times ~= main.getTime();
 
-	foreach (e; game.ents) {
+	for (int i = 0; i < ents.length; i++) {
+		auto e = ents[i];
 		auto s = e.spr;
 
 		double dx = e.x - cPos[0];

@@ -6,7 +6,7 @@ struct Key {
 }
 
 enum {
-	W, A, S, D, UP, DOWN, LEFT, RIGHT, LAST
+	W, A, S, D, UP, DOWN, LEFT, RIGHT, ATTACK, LAST
 }
 
 private Key[] keys = [
@@ -18,6 +18,7 @@ private Key[] keys = [
 	{0, SDL_SCANCODE_DOWN}, 
 	{0, SDL_SCANCODE_LEFT}, 
 	{0, SDL_SCANCODE_RIGHT}, 
+	{0, SDL_SCANCODE_LCTRL}, 
 ];
 
 Key[] oldKeys;
