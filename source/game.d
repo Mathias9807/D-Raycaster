@@ -24,8 +24,10 @@ void init() {
 		s ~= new Sprite("Blaster/000" ~ to!string(i) ~ ".png");
 	weps ~= Weapon("Blaster", s, 1, false, new Bullet(0., 0., 0., 0.5, new Sprite("Orb.png")));
 
-	p.e = new Mob(0, 0, 0, 1.8, new Sprite("Thrash.png"));
+	p.e = new Mob(0, 0, 0, 1.8, new Sprite("Tower.png"));
 	ents ~= p.e;
+	
+	ents ~= new Mob(5, 0, 0, 1.8, new Sprite("Tower.png"));
 	
 	p.e.weapon = weps[1];
 }

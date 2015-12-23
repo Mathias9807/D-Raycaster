@@ -74,7 +74,6 @@ class Mob : Entity {
 	public void fire() {
 		lastFired = main.getTime();
 		
-		//auto blast = new Bullet(x, y + eyeHeight - 0.35, z, 0.5, new Sprite("Orb.png"));
 		auto blast = new Bullet(weapon.b, x, y + eyeHeight - 0.35, z);
 		blast.dx = cos(yRot - PI / 2) * 24;
 		blast.dz = sin(yRot - PI / 2) * 24;

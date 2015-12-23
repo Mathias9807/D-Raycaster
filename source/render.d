@@ -154,12 +154,15 @@ void tick() {
 		double dy = e.z - cPos[2];
 		if (dx > 0.5 || dx < -0.5 || dy > 0.5 || dy < -0.5) {
 			double d = sqrt(dx * dx + dy * dy);
-			double xa = atan2(dy, dx) - cRot[1] + PI / 2.0;
+			double xa = atan2(dx, -dy) - cRot[1];
+			if (xa > PI) xa -= 2 * PI;
+			if (xa < -PI) xa += 2 * PI;
 			double ya = -atan2(e.y - cPos[1], d);
 			double xm = cast(int) (xa / fov * WIDTH);
 			double yb = cast(int) (ya / vFov * HEIGHT);
 			double yt = cast(int) (-atan2(e.y + e.height - cPos[1], d) / vFov * HEIGHT);
 			double xd = (yb - yt) / s.h * s.w / 2;
+			
 			for (double x = xm - xd; x < xm + xd; x++) 
 				for (double y = yt; y < yb; y++) {
 					int xs = cast(int) ((x - xm + xd) / 2 / xd * s.w);
