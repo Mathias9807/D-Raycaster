@@ -18,11 +18,11 @@ Entity[] ents;
 Player p;
 
 void init() {
-	weps ~= Weapon("Unarmed", [], 1, false);
+	weps ~= Weapon("Unarmed", [], 1, false, null);
 	Sprite[] s;
 	for (int i = 1; i <= 8; i++) 
 		s ~= new Sprite("Blaster/000" ~ to!string(i) ~ ".png");
-	weps ~= Weapon("Blaster", s, 1, false);
+	weps ~= Weapon("Blaster", s, 1, false, new Bullet(0., 0., 0., 0.5, new Sprite("Orb.png")));
 
 	p.e = new Mob(0, 0, 0, 1.8, new Sprite("Thrash.png"));
 	ents ~= p.e;
