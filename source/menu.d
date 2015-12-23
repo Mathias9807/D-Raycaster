@@ -2,6 +2,7 @@ import render;
 import input;
 import game;
 import std.math;
+import std.algorithm.comparison;
 
 interface Component {
 	void event();
@@ -120,8 +121,9 @@ class WeaponRenderer : Component {
 		xOffs *= pow(rubberband, game.delta);
 		
 		Sprite[] s = game.p.e.weapon.spr;
-		double x = (game.p.e.lastFired - main.getTime()) / game.p.e.weapon.firerate;
-		double f = polynomial([1, -1], x);
+		double x = (main.getTime() - game.p.e.lastFired) / game.p.e.weapon.firerate;
+		double f = expression([[1 / 0.7, 0.3], [-1 / 0.7, 1.5]], x / 0.3);
+		f = clamp(f, 0, 1);
 		int index = cast(int) (f * s.length);
 		if (index >= s.length) index = cast(int) (s.length - 1);
 		if (s.length > 0) {

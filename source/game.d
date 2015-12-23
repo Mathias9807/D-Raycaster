@@ -56,6 +56,16 @@ double polynomial(double[] coeffs, double x) {
 	return result;
 }
 
+double expression(double[][2] terms, double x) {
+	double result = 0;
+	
+	for (int i = 0; i < terms.length; i++) {
+		result += terms[i][0] * pow(x, terms[i][1]);
+	}
+	
+	return result;
+}
+
 void quit() {
 }
 
