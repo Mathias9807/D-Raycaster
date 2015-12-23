@@ -1,4 +1,5 @@
 import render;
+import ai;
 import std.math;
 
 struct Weapon {
@@ -61,7 +62,9 @@ class Mob : Entity {
 	public Weapon weapon;
 	public double lastFired;
 	
-	this(double x, double y, double z, double h, Sprite s) {
+	public Routine ai;
+	
+	this(double x, double y, double z, double h, Sprite s, Routine r) {
 		super(x, y, z, h, s);
 		
 		weapon = game.weps[0];
@@ -69,6 +72,11 @@ class Mob : Entity {
 		eyeHeight = h * 2 / 3;
 		dx = dy = dz = 0;
 		dxRot = dyRot = 0;
+		ai = r;
+	}
+	
+	override public void tick(double delta) {
+		if (ai !is null) ai.run(this);
 	}
 	
 	public void fire() {
