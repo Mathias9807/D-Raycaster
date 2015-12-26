@@ -1,5 +1,7 @@
 import main;
+import game;
 import entity;
+import std.math;
 
 // States returned by running a routine
 enum {
@@ -64,3 +66,47 @@ class Attack : Routine {
 	}
 }
 
+// Finds a target
+class FindTarget : Routine {
+	override int run(Entity e) {
+		Entity best = null;
+		foreach (Entity ee; game.ents) {
+			if (cast(Mob) ee) {
+				if (ee == e) continue;
+				
+				if (best is null || abs(best.x - e.x) + abs(best.z - e.z) > abs(ee.x - e.x) + abs(ee.z - e.z)) 
+					best = ee;
+			}
+		}
+		
+		if (best is null) 
+			return FAILURE;
+		
+		(cast(Mob) e).target = best;
+		return SUCCESS;
+	}
+}
+
+// Rotates towards target
+class Aim : Routine {
+	override int run(Entity e) {
+		Mob m = cast(Mob) e;
+		double angle = atan2(m.target.z - m.z, m.target.x - m.x) + PI / 2;
+		double dRot = angle - m.yRot;
+		if (dRot > PI) {
+			m.yRot += 2 * PI;
+			dRot = angle - m.yRot;
+		}
+		
+		if (dRot > 0) {
+			m.rotate([0, game.delta > dRot ? dRot : game.delta]);
+		}else {
+			m.rotate([0, -game.delta < dRot ? dRot : -game.delta]);
+		}
+		
+		if (abs(dRot) < game.delta) 
+			return SUCCESS;
+		else 
+			return RUNNING;
+	}
+}

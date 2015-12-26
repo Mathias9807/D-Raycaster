@@ -30,6 +30,8 @@ void init() {
 	
 	ents ~= new Mob(5, 0, 0, 1.8, new Sprite("Tower.png"), 
 		new Sequence(cast(Routine[]) [
+			new FindTarget(), 
+			new Aim(), 
 			new Attack()
 		])
 	);
@@ -50,7 +52,7 @@ void tick(double delta) {
 	auto pX = to!string(p.e.x);
 	auto pZ = to!string(p.e.z);
 	auto sortMethod(Entity a, Entity b) @safe nothrow {
-		return abs(a.x - p.e.x) + abs(a.z - p.e.z) > abs(b.x - p.e.x) + abs(b.z - p.e.z);
+		return cmp(abs(a.x - p.e.x) + abs(a.z - p.e.z), abs(b.x - p.e.x) + abs(b.z - p.e.z)) > 0;
 	}
 	sort!(sortMethod, SwapStrategy.stable)(ents);
 }

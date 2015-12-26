@@ -63,6 +63,7 @@ class Mob : Entity {
 	public double lastFired;
 	
 	public Routine ai;
+	public Entity target;
 	
 	this(double x, double y, double z, double h, Sprite s, Routine r) {
 		super(x, y, z, h, s);
