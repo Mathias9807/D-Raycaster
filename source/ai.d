@@ -87,6 +87,17 @@ class FindTarget : Routine {
 	}
 }
 
+// Waits until weapon can fire
+class WaitForWeapon : Routine {
+	override int run(Entity e) {
+		Mob m = cast(Mob) e;
+		if (main.getTime() - m.lastFired < m.weapon.firerate) 
+			return RUNNING;
+		
+		return SUCCESS;
+	}
+}
+
 // Rotates towards target
 class Aim : Routine {
 	override int run(Entity e) {
@@ -97,6 +108,11 @@ class Aim : Routine {
 			m.yRot += 2 * PI;
 			dRot = angle - m.yRot;
 		}
+		if (dRot < -PI) {
+			m.yRot -= 2 * PI;
+			dRot = angle - m.yRot;
+		}
+		std.stdio.writeln(m.yRot);
 		
 		if (dRot > 0) {
 			m.rotate([0, game.delta > dRot ? dRot : game.delta]);

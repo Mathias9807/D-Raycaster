@@ -30,6 +30,7 @@ void init() {
 	
 	ents ~= new Mob(5, 0, 0, 1.8, new Sprite("Tower.png"), 
 		new Sequence(cast(Routine[]) [
+			new WaitForWeapon(), 
 			new FindTarget(), 
 			new Aim(), 
 			new Attack()
