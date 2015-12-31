@@ -29,6 +29,12 @@ private {
 	double[WIDTH] xCos, xTan;
 }
 
+Sprite font;
+auto fontCharWidth = 6, fontCharHeight = 8;
+string alphabet = 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?\"'/\\<>()[]{} " ~ 
+					"abcdefghijklmnopqrstuvwxyz_                  " ~ 
+					"0123456789+-=*:;";
+
 Sprite spr, backdrop;
 
 class Sprite {
@@ -106,6 +112,7 @@ void init() {
 	
 	backdrop = new Sprite("Backdrop.png");
 	spr = new Sprite("Cobble.png");
+	font = new Sprite("font.png");
 	if (spr.w != TILE_SIZE || spr.h != TILE_SIZE) throw new Exception("Incorrect sprite size! ");
 }
 
@@ -223,6 +230,46 @@ void draw(Sprite s, int x, int y, int w, int h) {
 			pixels[xScr + yScr * WIDTH][0..3] = col;
 		}
 	}
+}
+
+void drawString(string s, int x, int y, ubyte[] color) {
+	int cw = fontCharWidth;
+	int ch = fontCharHeight;
+	auto w = font.w / cw;
+	auto h = font.h / ch;
+	auto xx = x - s.length * cw / 2;
+	auto yy = y - ch / 2;
+	
+	for (int i = 0; i < s.length; i++) {
+		auto index = alphabet.indexOf(s[i]);
+		
+		if (index == -1) continue;
+		
+		auto xBase = (index % w) * cw;
+		auto yBase = (index / w) * ch;
+		
+		for (int xxx = 0; xxx < cw; xxx++) {
+			for (int yyy = 0; yyy < ch; yyy++) {
+				auto col = 
+					font[cast(int) (xBase + xxx), cast(int) (yBase + yyy)][0..3];
+			
+				if (col[0] == cast(ubyte) (ALPHA_COLOR >> 16) 
+					&& col[1] == cast(ubyte) (ALPHA_COLOR >> 8) 
+					&& col[2] == cast(ubyte) ALPHA_COLOR) continue;
+			
+				pixels[xxx + xx + i * cw + (yyy + yy) * WIDTH][0..3] = color;
+			}
+		}
+	}
+}
+
+void setPixels(size_t x, size_t y, size_t w, size_t h, int r, int g, int b) {
+	for (size_t xx = x; xx < x + w; xx++) 
+		for (size_t yy = y; yy < y + h; yy++) {
+			pixels[xx + yy * WIDTH][0] = cast(ubyte) r;
+			pixels[xx + yy * WIDTH][1] = cast(ubyte) g;
+			pixels[xx + yy * WIDTH][2] = cast(ubyte) b;
+		}
 }
 
 void setPixel(int x, int y, int r, int g, int b) {

@@ -1,6 +1,7 @@
 import render;
 import input;
 import game;
+import std.stdio;
 import std.math;
 import std.algorithm.comparison;
 
@@ -28,6 +29,11 @@ class Menu {
 	}
 }
 
+struct MenuItem {
+	string name;
+	Menu link;
+}
+
 Menu current;
 
 Menu mainMenu, hudMenu;
@@ -37,10 +43,16 @@ Sprite title;
 void init() {
 	title = new Sprite("Title.png");
 
-	mainMenu = new Menu([new Image(title, WIDTH / 2, HEIGHT / 3)]);
 	hudMenu = new Menu(cast(Component[]) [new Controller(), new WeaponRenderer()]);
+	mainMenu = new Menu(cast(Component[]) [
+		new Image(title, WIDTH / 2, HEIGHT / 3), 
+		new MController(cast(MenuItem[]) [
+			MenuItem("Play", hudMenu),
+			MenuItem("Fuck off", null)
+		], WIDTH / 2, HEIGHT / 2, HEIGHT * 4 / 5)
+	]);
 	
-	current = hudMenu;
+	current = mainMenu;
 }
 
 class Image : Component {
@@ -70,6 +82,70 @@ class Image : Component {
 	}
 	
 	bool isInteractive() { return false; }
+}
+
+// Enables menu navigation
+class MController : Component {
+	private int selected = 0, xCoord, yMin, yMax;
+	private bool upHeld = false, downHeld = false;
+	private MenuItem[] items;
+	
+	this(MenuItem[] items, int xCoord, int yMin, int yMax) {
+		this.items = items;
+		this.xCoord = xCoord;
+		this.yMin = yMin;
+		this.yMax = yMax;
+	}
+
+	void event() {
+		if (input.isPressed(W)) {
+			if (!upHeld) {
+				upHeld = true;
+				selected--;
+			}
+		}else upHeld = false;
+		if (input.isPressed(S)) {
+			if (!downHeld) {
+				downHeld = true;
+				selected++;
+			}
+		}else downHeld = false;
+		
+		if (selected < 0) selected = 0;
+		if (selected >= items.length) selected = cast(int) items.length - 1;
+		
+		if (input.isPressed(SELECT) && items[selected].link !is null) 
+			current = items[selected].link;
+	}
+	
+	void render() {
+		// The number of steps between yMin and yMax
+		int num = cast(int) (items.length > 1 ? items.length - 1 : 1);
+		
+		for (int i = 0; i < items.length; i++) {
+			auto x = xCoord;
+			auto y = yMin + i * (yMax - yMin) / num;
+			auto s = items[i].name;
+			
+			// Draw a border around the selected option
+			if (selected == i) 
+				setPixels(
+					x - s.length * fontCharWidth / 2 - 1, 
+					y - fontCharHeight / 2 - 1, 
+					s.length * fontCharWidth + 2, 
+					fontCharHeight + 2, 0xA0, 0xA0, 0xA0);
+		
+			// Draw the items text
+			drawString(items[i].name, 
+				xCoord, cast(int) (yMin + i * (yMax - yMin) / num), 
+				[0x30, 0x30, 0x30]
+			);
+		}
+	}
+	
+	bool isInteractive() { return true; }
+	
+	int getSelected() { return selected; }
 }
 
 // Enables player movement

@@ -112,7 +112,6 @@ class Aim : Routine {
 			m.yRot -= 2 * PI;
 			dRot = angle - m.yRot;
 		}
-		std.stdio.writeln(m.yRot);
 		
 		if (dRot > 0) {
 			m.rotate([0, game.delta > dRot ? dRot : game.delta]);
