@@ -1,6 +1,7 @@
 import render;
 import ai;
 import std.math;
+import std.stdio;
 
 struct Weapon {
 	string name;
@@ -17,6 +18,7 @@ class Entity {
 	public double x, y, z;
 	public double xRot, yRot, dxRot, dyRot;
 	public double height, speed, rotSpeed;
+	public double eyeHeight;
 
 	public Sprite spr;
 
@@ -24,6 +26,7 @@ class Entity {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		eyeHeight = 0;
 		xRot = 0;
 		yRot = 0;
 		height = h;
@@ -58,7 +61,6 @@ class Bullet : Entity {
 
 class Mob : Entity {
 	public double dx, dy, dz, dxRot, dyRot;
-	public double eyeHeight;
 	public Weapon weapon;
 	public double lastFired;
 	
@@ -84,8 +86,16 @@ class Mob : Entity {
 		lastFired = main.getTime();
 		
 		auto blast = new Bullet(weapon.b, x, y + eyeHeight - 0.35, z);
-		blast.dx = cos(yRot - PI / 2) * 24;
-		blast.dz = sin(yRot - PI / 2) * 24;
+		blast.dx = cos(yRot - PI / 2);
+		blast.dz = sin(yRot - PI / 2);
+		
+		if (target !is null) 
+				blast.dy = (target.y + target.eyeHeight - (y + eyeHeight))
+					/ sqrt(pow(target.x - x, 2) + pow(target.z - z, 2));
+		else blast.dy = 0;
+
+		blast.dx *= 24; blast.dy *= 24; blast.dz *= 24;
+		writeln(blast.dx, ", ", blast.dy, ", ", blast.dz);
 		game.ents ~= blast;
 	}
 	
