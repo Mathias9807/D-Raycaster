@@ -13,6 +13,8 @@ enum uint WIDTH = 160;
 enum uint HEIGHT = 120;
 
 immutable uint TILE_SIZE = 8;
+immutable uint RENDER_DIST = 50;
+immutable uint WALL_HEIGHT = 2;
 
 immutable uint ALPHA_COLOR = 0xFF00FF;
 
@@ -32,8 +34,8 @@ private {
 Sprite font;
 auto fontCharWidth = 6, fontCharHeight = 8;
 string alphabet = 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?\"'/\\<>()[]{} " ~ 
-					"abcdefghijklmnopqrstuvwxyz_                  " ~ 
-					"0123456789+-=*:;";
+			"abcdefghijklmnopqrstuvwxyz_                  " ~ 
+			"0123456789+-=*:;";
 
 Sprite spr, backdrop;
 
@@ -132,9 +134,10 @@ void tick() {
 		}
 	}
 
+	// Draw floor
 	for (int y = 0; y < HEIGHT; y++) {
 		double zLocal = 1.0 / (abs(tan(yAngles[y] + cRot[0])) / cPos[1]);
-		if (zLocal > 50 || (!ceiling && y < HEIGHT / 2)) {
+		if (zLocal > RENDER_DIST || (!ceiling && y < HEIGHT / 2)) {
 			for (int x = 0; x < WIDTH; x++) 
 				pixels[x + y * WIDTH][0..3] = backdrop[x * backdrop.w / WIDTH, y * backdrop.h / HEIGHT][0..3];
 			continue;
@@ -153,6 +156,29 @@ void tick() {
 
 	times ~= main.getTime();
 
+	// Draw walls
+	for (int x = 0; x < WIDTH; x++) {
+		double angle = (cast(double) x - WIDTH / 2.0) / WIDTH * fov;
+		double mid = HEIGHT / 2.0;
+		double start = mid, stop = mid;
+		double r = 5.0 + cPos[2];
+		double d = r / cos(cRot[1] + angle);
+		if (d > RENDER_DIST) continue;
+		double h = 2.0;
+		double height = asin(h / (2*d)) / vFov * HEIGHT;
+
+		start = mid - atan((WALL_HEIGHT - cPos[1]) / d) / vFov * HEIGHT;
+		stop = mid + atan(cPos[1] / d) / vFov * HEIGHT;
+
+		if (start < 0) start = 0;
+		if (stop >= HEIGHT) stop = HEIGHT;
+
+		for (int y = cast(int) start; y < cast(int) stop; y++) {
+			pixels[x + y * WIDTH][0..3] = [0x33, 0x33, 0x33];
+		}
+	}
+
+	// Draw entities
 	for (int i = 0; i < ents.length; i++) {
 		auto e = ents[i];
 		auto s = e.spr;
